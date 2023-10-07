@@ -1,0 +1,25 @@
+sync:
+  source: ''
+  destinations:
+    - type: gdrive
+      folder_name: SyncFiles
+  watch: true
+  interval: 5
+  chunk_size: 4194304
+  debounce: 1.0
+server:
+  host: 127.0.0.1
+  port: 8765
+  bind_network: false
+  auto_open_browser: true
+  session_timeout: 1800
+git:
+  enabled: false
+  auto_commit: false
+  auto_push: false
+  branch: main
+  commit_template: 'sync: {timestamp} — {files_changed} files'
+log:
+  file: sync.log
+  max_size: 10485760
+  level: info

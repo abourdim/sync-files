@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SyncFiles — Start Here</title>
+<link href="https://fonts.googleapis.com/css2?family=Righteous&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #08091a;
+    --bg-card:   #0b0d24;
+    --bg-code:   #0f1132;
+    --gold:      #d4a03c;
+    --gold-dim:  rgba(212,160,60,.18);
+    --sky:       #0ea5e9;
+    --green:     #22c55e;
+    --red:       #ef4444;
+    --orange:    #f59e0b;
+    --text:      #e4ddd0;
+    --text-dim:  #8a7e6e;
+    --radius:    12px;
+    --font:      'Tajawal', system-ui, sans-serif;
+    --font-head: 'Righteous', 'Tajawal', sans-serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 16px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── NAV ── */
+  .top-bar {
+    position: sticky; top:0; z-index:100;
+    background: rgba(8,9,26,.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--gold-dim);
+    padding: 12px 24px;
+    display: flex; align-items: center; gap: 16px;
+    flex-wrap: wrap;
+  }
+  .top-bar .logo { font-family: var(--font-head); font-size:1.3rem; color:var(--gold); }
+  .top-bar nav { display:flex; gap:6px; flex-wrap:wrap; }
+  .top-bar nav a {
+    color: var(--text-dim); text-decoration:none; font-size:.85rem;
+    padding: 4px 12px; border-radius: 20px; transition: .2s;
+  }
+  .top-bar nav a:hover, .top-bar nav a:focus { background:var(--gold-dim); color:var(--gold); }
+
+  /* ── HERO ── */
+  .hero {
+    text-align:center; padding:60px 24px 40px;
+    background: radial-gradient(ellipse at 50% 0%, rgba(212,160,60,.08) 0%, transparent 70%);
+  }
+  .hero h1 { font-family:var(--font-head); font-size:2.6rem; color:var(--gold); margin-bottom:8px; }
+  .hero p  { color:var(--text-dim); font-size:1.15rem; max-width:600px; margin:0 auto; }
+
+  /* ── CONTAINER ── */
+  .container { max-width:880px; margin:0 auto; padding:0 24px 80px; }
+
+  /* ── SECTION ── */
+  section { margin-top: 56px; }
+  section > h2 {
+    font-family: var(--font-head); font-size:1.6rem; color:var(--gold);
+    border-bottom: 2px solid var(--gold-dim); padding-bottom:8px; margin-bottom:24px;
+    display:flex; align-items:center; gap:10px;
+  }
+  section > h2 .icon { font-size:1.4rem; }
+
+  /* ── STEP CARDS ── */
+  .step {
+    background: var(--bg-card);
+    border: 1px solid var(--gold-dim);
+    border-radius: var(--radius);
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .step::before {
+    content: attr(data-step);
+    position: absolute; top:14px; right:18px;
+    font-family: var(--font-head); font-size:2.4rem;
+    color: var(--gold); opacity:.12;
+  }
+  .step h3 {
+    font-size: 1.15rem; color: var(--sky); margin-bottom: 8px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .step h3 .num {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:28px; height:28px; border-radius:50%;
+    background: var(--gold); color: var(--bg); font-size:.85rem;
+    font-family: var(--font-head); flex-shrink:0;
+  }
+  .step p, .step li { color: var(--text); }
+  .step ul, .step ol { padding-left: 22px; margin-top:8px; }
+  .step li { margin-bottom: 4px; }
+
+  /* ── CODE BLOCKS ── */
+  pre, code {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: .88rem;
+  }
+  code {
+    background: var(--bg-code); color: var(--gold);
+    padding: 2px 7px; border-radius: 4px;
+  }
+  pre {
+    background: var(--bg-code);
+    border: 1px solid var(--gold-dim);
+    border-radius: 8px;
+    padding: 16px 20px;
+    overflow-x: auto;
+    margin: 12px 0;
+    line-height: 1.6;
+  }
+  pre code { background:none; padding:0; }
+  .cmd { color: var(--green); }
+  .cmt { color: var(--text-dim); }
+  .val { color: var(--sky); }
+  .key { color: var(--gold); }
+
+  /* ── TIP / WARN / INFO ── */
+  .tip, .warn, .info {
+    border-radius: 8px; padding: 14px 18px; margin: 14px 0;
+    display:flex; gap:10px; align-items:flex-start; font-size:.95rem;
+  }
+  .tip  { background: rgba(34,197,94,.08); border-left:3px solid var(--green); }
+  .warn { background: rgba(239,68,68,.08); border-left:3px solid var(--red); }
+  .info { background: rgba(14,165,233,.08); border-left:3px solid var(--sky); }
+  .tip .badge, .warn .badge, .info .badge { font-weight:700; flex-shrink:0; }
+  .tip .badge  { color:var(--green); }
+  .warn .badge { color:var(--red); }
+  .info .badge { color:var(--sky); }
+
+  /* ── TABLE ── */
+  table {
+    width:100%; border-collapse:collapse; margin:14px 0; font-size:.92rem;
+  }
+  th, td {
+    text-align:left; padding:10px 14px;
+    border-bottom: 1px solid var(--gold-dim);
+  }
+  th { color:var(--gold); font-family:var(--font-head); font-weight:400; }
+  td code { font-size:.82rem; }
+
+  /* ── CHECKLIST ── */
+  .checklist { list-style:none; padding:0; }
+  .checklist li { padding:6px 0; display:flex; align-items:center; gap:8px; }
+  .checklist li::before { content:'☐'; color:var(--gold); font-size:1.1rem; }
+
+  /* ── ACCORDION ── */
+  details {
+    background:var(--bg-card); border:1px solid var(--gold-dim);
+    border-radius:var(--radius); margin-bottom:12px;
+  }
+  details summary {
+    padding:16px 20px; cursor:pointer; font-weight:700;
+    color:var(--sky); list-style:none; display:flex; align-items:center; gap:8px;
+  }
+  details summary::before { content:'▸'; color:var(--gold); transition:.2s; }
+  details[open] summary::before { content:'▾'; }
+  details .inner { padding:0 20px 20px; }
+
+  /* ── LINKS ── */
+  a { color:var(--sky); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align:center; padding:32px; color:var(--text-dim); font-size:.85rem;
+    border-top:1px solid var(--gold-dim); margin-top:60px;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width:600px) {
+    .hero h1 { font-size:1.8rem; }
+    .step { padding:18px; }
+    pre { font-size:.8rem; padding:12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ TOP BAR ═══════════════════ -->
+<div class="top-bar">
+  <span class="logo">🔄 SyncFiles</span>
+  <nav>
+    <a href="#overview">Overview</a>
+    <a href="#first-launch">First Launch</a>
+    <a href="#google-drive">Google Drive</a>
+    <a href="#git">Git</a>
+    <a href="#ssh">SSH</a>
+    <a href="#local">Local Backup</a>
+    <a href="#config">Config</a>
+    <a href="#credentials">Credentials</a>
+    <a href="#dashboard">Dashboard</a>
+    <a href="#faq">FAQ</a>
+  </nav>
+</div>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<div class="hero">
+  <h1>Start Here</h1>
+  <p>A beginner-friendly guide to set up SyncFiles step by step.<br>
+     Follow the sections in order, or jump to what you need.</p>
+</div>
+
+<div class="container">
+
+<!-- ═══════════════════ OVERVIEW ═══════════════════ -->
+<section id="overview">
+  <h2><span class="icon">📋</span> Overview — What is SyncFiles?</h2>
+
+  <div class="step" data-step="?">
+    <p>SyncFiles keeps your project files synchronized across multiple destinations:</p>
+    <table>
+      <tr><th>Destination</th><th>What it does</th><th>You need</th></tr>
+      <tr>
+        <td>☁️ <strong>Google Drive</strong></td>
+        <td>Syncs files to a Google Drive folder</td>
+        <td>Google account + API credentials</td>
+      </tr>
+      <tr>
+        <td>📦 <strong>Git</strong></td>
+        <td>Auto-commits &amp; pushes changes</td>
+        <td>A Git repository (local or remote)</td>
+      </tr>
+      <tr>
+        <td>🖥️ <strong>SSH / SFTP</strong></td>
+        <td>Syncs files to a remote server</td>
+        <td>SSH access (password or key)</td>
+      </tr>
+      <tr>
+        <td>📁 <strong>Local</strong></td>
+        <td>Copies files to another folder</td>
+        <td>A target folder path</td>
+      </tr>
+    </table>
+    <div class="info">
+      <span class="badge">ℹ️</span>
+      <span>You can use <strong>multiple destinations at the same time</strong>. For example: Google Drive + Git + Local backup.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ FIRST LAUNCH ═══════════════════ -->
+<section id="first-launch">
+  <h2><span class="icon">🚀</span> First Launch</h2>
+
+  <div class="step" data-step="1">
+    <h3><span class="num">1</span> Open Terminal</h3>
+    <p>Navigate to the SyncFiles folder:</p>
+    <pre><code><span class="cmd">cd</span> <span class="val">/path/to/sync-files</span></code></pre>
+  </div>
+
+  <div class="step" data-step="2">
+    <h3><span class="num">2</span> Run the launcher</h3>
+    <pre><code><span class="cmd">bash</span> sync.sh</code></pre>
+    <p>This opens the main menu. On first run, choose <strong>option 1 — Setup Wizard</strong>.</p>
+    <div class="tip">
+      <span class="badge">💡</span>
+      <span>Works on both <strong>macOS</strong> and <strong>Ubuntu/Linux</strong> — no changes needed.</span>
+    </div>
+  </div>
+
+  <div class="step" data-step="3">
+    <h3><span class="num">3</span> Setup Wizard walks you through</h3>
+    <ol>
+      <li>Install Python dependencies</li>
+      <li>Set your <strong>source folder</strong> (the project you want to sync)</li>
+      <li>Choose a <strong>destination</strong> (Google Drive, Git, SSH, or Local)</li>
+      <li>Enable <strong>Git integration</strong> (if a repo is detected)</li>
+      <li>Create the <strong>encrypted credential store</strong> (sets a master password)</li>
+    </ol>
+    <div class="info">
+      <span class="badge">ℹ️</span>
+      <span>You can also skip the wizard and configure everything manually — see the <a href="#config">Config</a> section below.</span>
+    </div>
+  </div>
+
+  <div class="step" data-step="4">
+    <h3><span class="num">4</span> Launch the Web Dashboard</h3>
+    <p>From the menu, choose <strong>option 2 — Web Dashboard</strong>, or run directly:</p>
+    <pre><code><span class="cmd">bash</span> sync.sh <span class="val">--web</span></code></pre>
+    <p>Your browser opens to <code>http://127.0.0.1:8765</code> — the SyncFiles dashboard.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════ GOOGLE DRIVE ═══════════════════ -->
+<section id="google-drive">
+  <h2><span class="icon">☁️</span> Google Drive Setup</h2>
+  <p style="color:var(--text-dim); margin-bottom:20px;">
+    This is the most involved setup because Google requires API credentials. Follow each step carefully.
+  </p>
+
+  <!-- Step 1 -->
+  <div class="step" data-step="1">
+    <h3><span class="num">1</span> Create a Google Cloud Project</h3>
+    <ol>
+      <li>Go to <a href="https://console.cloud.google.com" target="_blank">console.cloud.google.com</a></li>
+      <li>Sign in with your Google account</li>
+      <li>Click the project dropdown (top-left) → <strong>New Project</strong></li>
+      <li>Name it anything (e.g. <code>my-syncfiles</code>) → click <strong>Create</strong></li>
+      <li>Wait a few seconds, then <strong>select your new project</strong> from the dropdown</li>
+    </ol>
+    <div class="tip">
+      <span class="badge">💡</span>
+      <span>This is free. Google Cloud projects don't cost anything for personal API use.</span>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="step" data-step="2">
+    <h3><span class="num">2</span> Enable the Google Drive API</h3>
+    <ol>
+      <li>In your project, go to the side menu: <strong>APIs &amp; Services → Library</strong></li>
+      <li>Search for <strong>"Google Drive API"</strong></li>
+      <li>Click on it → click the <strong>Enable</strong> button</li>
+    </ol>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="step" data-step="3">
+    <h3><span class="num">3</span> Configure the OAuth Consent Screen</h3>
+    <ol>
+      <li>Go to <strong>APIs &amp; Services → OAuth consent screen</strong></li>
+      <li>Choose <strong>External</strong> → click <strong>Create</strong></li>
+      <li>Fill in the required fields:
+        <ul>
+          <li><strong>App name:</strong> SyncFiles (or anything you want)</li>
+          <li><strong>User support email:</strong> your email</li>
+          <li><strong>Developer contact email:</strong> your email</li>
+        </ul>
+      </li>
+      <li>Click <strong>Save and Continue</strong> through the remaining pages (Scopes, Test users, Summary)</li>
+    </ol>
+  </div>
+
+  <!-- Step 4 -->
+  <div class="step" data-step="4">
+    <h3><span class="num">4</span> Add Yourself as a Test User</h3>
+    <ol>
+      <li>Go to <strong>OAuth consent screen → Test users</strong> (or <strong>Audience</strong>)</li>
+      <li>Click <strong>Add users</strong></li>
+      <li>Enter <strong>your Gmail address</strong> (the one you'll authorize with)</li>
+      <li>Click <strong>Save</strong></li>
+    </ol>
+    <div class="warn">
+      <span class="badge">⚠️</span>
+      <span>If you skip this step, Google will show <strong>"Access Blocked"</strong> when you try to authorize. Your app is in test mode, so only listed test users can use it.</span>
+    </div>
+  </div>
+
+  <!-- Step 5 -->
+  <div class="step" data-step="5">
+    <h3><span class="num">5</span> Create OAuth Client Credentials</h3>
+    <ol>
+      <li>Go to <strong>APIs &amp; Services → Credentials</strong></li>
+      <li>Click <strong>+ Create Credentials → OAuth client ID</strong></li>
+      <li>Application type: <strong>Desktop app</strong></li>
+      <li>Name: anything (e.g. <code>syncfiles-desktop</code>)</li>
+      <li>Click <strong>Create</strong></li>
+    </ol>
+  </div>
+
+  <!-- Step 6 -->
+  <div class="step" data-step="6">
+    <h3><span class="num">6</span> Download the JSON Key</h3>
+    <ol>
+      <li>After creating the client, you'll see it listed under <strong>OAuth 2.0 Client IDs</strong></li>
+      <li>Click the <strong>download icon</strong> (⬇️) on the right side of your client row</li>
+      <li>Or click your client name → click <strong>Download JSON</strong> at the top</li>
+      <li>Rename the downloaded file to <code>client_secret.json</code></li>
+      <li>Move it to the <strong>SyncFiles root folder</strong>:</li>
+    </ol>
+    <pre><code><span class="cmd">mv</span> ~/Downloads/client_secret_*.json <span class="val">/path/to/sync-files/client_secret.json</span></code></pre>
+    <div class="warn">
+      <span class="badge">⚠️</span>
+      <span>Never commit <code>client_secret.json</code> to Git! It's already in <code>.gitignore</code> for safety.</span>
+    </div>
+  </div>
+
+  <!-- Step 7 -->
+  <div class="step" data-step="7">
+    <h3><span class="num">7</span> Authorize the App</h3>
+    <p>Run the authorization script:</p>
+    <pre><code><span class="cmt"># Activate the virtual environment first</span>
+<span class="cmd">source</span> .venv/bin/activate
+
+<span class="cmt"># Run authorization</span>
+<span class="cmd">python</span> -c "
+from server.credentials import CredentialStore
+from server.gdrive import GDriveSync
+cs = CredentialStore('.credentials')
+cs.unlock('')  <span class="cmt"># use your master password instead of ''</span>
+gd = GDriveSync(cs, 'SyncFiles')
+gd.authorize()
+print(gd.test_connection())
+"</code></pre>
+    <ol>
+      <li>A browser window opens → <strong>Sign in</strong> with the same Google account you added as test user</li>
+      <li>Click <strong>Continue</strong> when asked to grant permissions</li>
+      <li>You'll see <em>"The authentication flow has completed. You may close this window."</em></li>
+      <li>Back in the terminal, you should see: <code>{'ok': True, 'user': 'you@gmail.com'}</code></li>
+    </ol>
+    <div class="tip">
+      <span class="badge">✅</span>
+      <span>Done! The token is now securely stored in the encrypted credential store. You won't need to authorize again unless the token expires.</span>
+    </div>
+  </div>
+
+  <!-- Step 8 -->
+  <div class="step" data-step="8">
+    <h3><span class="num">8</span> Add Google Drive to config.yaml</h3>
+    <p>Open <code>config.yaml</code> and add a Google Drive destination:</p>
+    <pre><code><span class="key">sync</span>:
+  <span class="key">source</span>: <span class="val">'/path/to/your/project'</span>
+  <span class="key">destinations</span>:
+    - <span class="key">type</span>: <span class="val">gdrive</span>
+      <span class="key">folder_name</span>: <span class="val">SyncFiles</span>   <span class="cmt"># folder name in your Google Drive</span></code></pre>
+    <div class="info">
+      <span class="badge">ℹ️</span>
+      <span>The <code>folder_name</code> is the Google Drive folder where files will be uploaded. It's created automatically if it doesn't exist.</span>
+    </div>
+  </div>
+
+  <!-- Step 9 -->
+  <div class="step" data-step="9">
+    <h3><span class="num">9</span> Test It</h3>
+    <p>Start the dashboard and check the Google Drive indicator:</p>
+    <pre><code><span class="cmd">bash</span> sync.sh <span class="val">--web</span></code></pre>
+    <p>The <strong>Google Drive</strong> pill should show a <span style="color:var(--green);">●</span> green dot. Click <strong>Sync Now</strong> to test!</p>
+  </div>
+
+  <!-- Troubleshooting -->
+  <details>
+    <summary>🔧 Troubleshooting Google Drive</summary>
+    <div class="inner">
+      <table>
+        <tr><th>Problem</th><th>Solution</th></tr>
+        <tr>
+          <td><strong>"Access Blocked"</strong> error</td>
+          <td>Go back to Step 4 and add your email as a test user</td>
+        </tr>
+        <tr>
+          <td><strong>"client_secret.json not found"</strong></td>
+          <td>Make sure the file is in the SyncFiles root folder (not a subfolder)</td>
+        </tr>
+        <tr>
+          <td><strong>Grey dot</strong> on dashboard</td>
+          <td>Restart the server: <code>bash sync.sh --web</code></td>
+        </tr>
+        <tr>
+          <td><strong>"Credential store locked"</strong></td>
+          <td>The store needs to be unlocked with your master password. Re-run the wizard.</td>
+        </tr>
+        <tr>
+          <td><strong>Token expired</strong></td>
+          <td>Re-run Step 7 (authorize again)</td>
+        </tr>
+      </table>
+    </div>
+  </details>
+</section>
+
+<!-- ═══════════════════ GIT ═══════════════════ -->
+<section id="git">
+  <h2><span class="icon">📦</span> Git Setup</h2>
+
+  <div class="step" data-step="1">
+    <h3><span class="num">1</span> Make Sure Your Project is a Git Repo</h3>
+    <p>If your source folder is already a Git repository, SyncFiles detects it automatically. If not:</p>
+    <pre><code><span class="cmd">cd</span> <span class="val">/path/to/your/project</span>
+<span class="cmd">git</span> init
+<span class="cmd">git</span> remote add origin <span class="val">https://github.com/you/your-repo.git</span></code></pre>
+  </div>
+
+  <div class="step" data-step="2">
+    <h3><span class="num">2</span> Enable Git in config.yaml</h3>
+    <pre><code><span class="key">git</span>:
+  <span class="key">enabled</span>: <span class="val">true</span>        <span class="cmt"># turn on Git integration</span>
+  <span class="key">auto_commit</span>: <span class="val">true</span>   <span class="cmt"># auto-commit after each sync</span>
+  <span class="key">auto_push</span>: <span class="val">false</span>    <span class="cmt"># auto-push after commit (set true if you want)</span>
+  <span class="key">branch</span>: <span class="val">main</span>        <span class="cmt"># branch to use</span>
+  <span class="key">commit_template</span>: <span class="val">'sync: {timestamp} — {files_changed} files'</span></code></pre>
+  </div>
+
+  <div class="step" data-step="3">
+    <h3><span class="num">3</span> Understanding the Options</h3>
+    <table>
+      <tr><th>Option</th><th>What it does</th><th>Recommended</th></tr>
+      <tr>
+        <td><code>enabled</code></td>
+        <td>Activates the Git panel on the dashboard</td>
+        <td><code>true</code></td>
+      </tr>
+      <tr>
+        <td><code>auto_commit</code></td>
+        <td>Automatically commits changes after a sync runs</td>
+        <td><code>true</code> for backups</td>
+      </tr>
+      <tr>
+        <td><code>auto_push</code></td>
+        <td>Automatically pushes commits to the remote after committing</td>
+        <td><code>false</code> (push manually when ready)</td>
+      </tr>
+      <tr>
+        <td><code>branch</code></td>
+        <td>Which branch to commit on</td>
+        <td><code>main</code></td>
+      </tr>
+      <tr>
+        <td><code>commit_template</code></td>
+        <td>Customize the auto-commit message. Use <code>{timestamp}</code> and <code>{files_changed}</code> as placeholders</td>
+        <td>Default is fine</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="step" data-step="4">
+    <h3><span class="num">4</span> Using Git from the Dashboard</h3>
+    <p>Once enabled, the dashboard shows a <strong>GIT</strong> panel where you can:</p>
+    <ul>
+      <li>View current branch &amp; status</li>
+      <li>See recent commit history</li>
+      <li>View file diffs</li>
+      <li>Manually commit, push, or pull</li>
+    </ul>
+    <div class="tip">
+      <span class="badge">💡</span>
+      <span>Even with auto-commit off, you can always click <strong>Commit</strong> or <strong>Push</strong> manually from the dashboard.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ SSH ═══════════════════ -->
+<section id="ssh">
+  <h2><span class="icon">🖥️</span> SSH / SFTP Setup</h2>
+
+  <div class="step" data-step="1">
+    <h3><span class="num">1</span> Prerequisites</h3>
+    <ul>
+      <li>A remote server you can SSH into</li>
+      <li>SSH access via <strong>password</strong> or <strong>SSH key</strong> (key recommended)</li>
+      <li>Know the server's <strong>hostname</strong>, <strong>port</strong>, and <strong>username</strong></li>
+    </ul>
+  </div>
+
+  <div class="step" data-step="2">
+    <h3><span class="num">2</span> Generate an SSH Key (if you don't have one)</h3>
+    <pre><code><span class="cmt"># Check if you already have a key</span>
+<span class="cmd">ls</span> ~/.ssh/id_rsa.pub
+
+<span class="cmt"># If not, generate one</span>
+<span class="cmd">ssh-keygen</span> -t rsa -b 4096 -C <span class="val">"your@email.com"</span>
+
+<span class="cmt"># Copy it to the remote server</span>
+<span class="cmd">ssh-copy-id</span> <span class="val">user@your-server.com</span></code></pre>
+  </div>
+
+  <div class="step" data-step="3">
+    <h3><span class="num">3</span> Add SSH Destination to config.yaml</h3>
+    <pre><code><span class="key">sync</span>:
+  <span class="key">destinations</span>:
+    - <span class="key">type</span>: <span class="val">ssh</span>
+      <span class="key">name</span>: <span class="val">my-server</span>         <span class="cmt"># a label for this destination</span>
+      <span class="key">host</span>: <span class="val">your-server.com</span>   <span class="cmt"># server hostname or IP</span>
+      <span class="key">port</span>: <span class="val">22</span>                 <span class="cmt"># SSH port (usually 22)</span>
+      <span class="key">username</span>: <span class="val">user</span>           <span class="cmt"># your SSH username</span>
+      <span class="key">key_path</span>: <span class="val">~/.ssh/id_rsa</span>  <span class="cmt"># path to your private key</span>
+      <span class="key">remote_path</span>: <span class="val">/var/www/project</span>  <span class="cmt"># where to sync on the server</span></code></pre>
+  </div>
+
+  <div class="step" data-step="4">
+    <h3><span class="num">4</span> Store SSH Password (if using password auth)</h3>
+    <p>If you use a password instead of a key, store it securely in the credential store:</p>
+    <pre><code><span class="cmd">bash</span> sync.sh <span class="val">--creds</span></code></pre>
+    <p>Choose to add SSH credentials. They'll be encrypted with your master password.</p>
+    <div class="tip">
+      <span class="badge">💡</span>
+      <span>SSH keys are more secure and don't require storing passwords. Use keys whenever possible.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ LOCAL BACKUP ═══════════════════ -->
+<section id="local">
+  <h2><span class="icon">📁</span> Local Backup Setup</h2>
+
+  <div class="step" data-step="1">
+    <h3><span class="num">1</span> Add a Local Destination</h3>
+    <p>The simplest destination — just copies files to another folder on your computer or an external drive.</p>
+    <pre><code><span class="key">sync</span>:
+  <span class="key">source</span>: <span class="val">'/Users/you/Projects/my-app'</span>
+  <span class="key">destinations</span>:
+    - <span class="key">type</span>: <span class="val">local</span>
+      <span class="key">name</span>: <span class="val">backup</span>
+      <span class="key">path</span>: <span class="val">'/Volumes/USB-Drive/backups/my-app'</span>  <span class="cmt"># target folder</span></code></pre>
+    <div class="info">
+      <span class="badge">ℹ️</span>
+      <span>The target folder is created automatically if it doesn't exist.</span>
+    </div>
+  </div>
+
+  <div class="step" data-step="2">
+    <h3><span class="num">2</span> That's it!</h3>
+    <p>No credentials, no API keys. Just set the path and sync. 🎉</p>
+  </div>
+</section>
+
+<!-- ═══════════════════ CONFIG ═══════════════════ -->
+<section id="config">
+  <h2><span class="icon">⚙️</span> Configuration Reference</h2>
+
+  <div class="step" data-step="">
+    <h3>config.yaml — Full Reference</h3>
+    <pre><code><span class="cmt"># ── Source: the folder you want to sync ──</span>
+<span class="key">sync</span>:
+  <span class="key">source</span>: <span class="val">'/path/to/your/project'</span>
+
+  <span class="cmt"># ── Destinations (you can have multiple) ──</span>
+  <span class="key">destinations</span>:
+    - <span class="key">type</span>: <span class="val">gdrive</span>
+      <span class="key">folder_name</span>: <span class="val">SyncFiles</span>
+    - <span class="key">type</span>: <span class="val">local</span>
+      <span class="key">path</span>: <span class="val">'/backup/my-project'</span>
+
+  <span class="cmt"># ── Sync behavior ──</span>
+  <span class="key">watch</span>: <span class="val">true</span>          <span class="cmt"># watch files for real-time changes</span>
+  <span class="key">interval</span>: <span class="val">5</span>        <span class="cmt"># seconds between auto-syncs</span>
+  <span class="key">chunk_size</span>: <span class="val">4194304</span> <span class="cmt"># 4MB — for delta sync (advanced)</span>
+  <span class="key">debounce</span>: <span class="val">1.0</span>      <span class="cmt"># wait 1s after last change before syncing</span>
+
+<span class="cmt"># ── Server settings ──</span>
+<span class="key">server</span>:
+  <span class="key">host</span>: <span class="val">127.0.0.1</span>      <span class="cmt"># localhost only (safe)</span>
+  <span class="key">port</span>: <span class="val">8765</span>            <span class="cmt"># dashboard port</span>
+  <span class="key">bind_network</span>: <span class="val">false</span>  <span class="cmt"># true = accessible from other devices</span>
+  <span class="key">auto_open_browser</span>: <span class="val">true</span>
+  <span class="key">session_timeout</span>: <span class="val">1800</span>  <span class="cmt"># 30 minutes</span>
+
+<span class="cmt"># ── Git (see Git section above) ──</span>
+<span class="key">git</span>:
+  <span class="key">enabled</span>: <span class="val">false</span>
+  <span class="key">auto_commit</span>: <span class="val">false</span>
+  <span class="key">auto_push</span>: <span class="val">false</span>
+  <span class="key">branch</span>: <span class="val">main</span>
+  <span class="key">commit_template</span>: <span class="val">'sync: {timestamp} — {files_changed} files'</span>
+
+<span class="cmt"># ── Logging ──</span>
+<span class="key">log</span>:
+  <span class="key">file</span>: <span class="val">sync.log</span>
+  <span class="key">max_size</span>: <span class="val">10485760</span>  <span class="cmt"># 10MB</span>
+  <span class="key">level</span>: <span class="val">info</span>          <span class="cmt"># info or debug</span></code></pre>
+  </div>
+
+  <div class="step" data-step="">
+    <h3>.syncignore — Exclude Files from Sync</h3>
+    <p>Works like <code>.gitignore</code>. Create a <code>.syncignore</code> file in your project root:</p>
+    <pre><code><span class="cmt"># Folders</span>
+.venv/
+node_modules/
+__pycache__/
+
+<span class="cmt"># Files</span>
+*.pyc
+*.log
+.DS_Store
+.env
+
+<span class="cmt"># Patterns</span>
+*.tmp
+*.bak</code></pre>
+  </div>
+
+  <div class="step" data-step="">
+    <h3>Environment Variables (Optional Overrides)</h3>
+    <p>You can override config values with environment variables:</p>
+    <table>
+      <tr><th>Variable</th><th>Overrides</th><th>Example</th></tr>
+      <tr><td><code>SYNCFILES_HOST</code></td><td><code>server.host</code></td><td><code>0.0.0.0</code></td></tr>
+      <tr><td><code>SYNCFILES_PORT</code></td><td><code>server.port</code></td><td><code>9000</code></td></tr>
+      <tr><td><code>SYNCFILES_SOURCE</code></td><td><code>sync.source</code></td><td><code>/my/project</code></td></tr>
+      <tr><td><code>SYNCFILES_INTERVAL</code></td><td><code>sync.interval</code></td><td><code>10</code></td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════ CREDENTIALS ═══════════════════ -->
+<section id="credentials">
+  <h2><span class="icon">🔐</span> Credential Store</h2>
+
+  <div class="step" data-step="">
+    <h3>How It Works</h3>
+    <p>SyncFiles stores sensitive data (Google tokens, SSH passwords) in an <strong>encrypted vault</strong>:</p>
+    <ul>
+      <li><strong>Encryption:</strong> AES-256 (Fernet) — military-grade</li>
+      <li><strong>Key derivation:</strong> PBKDF2 with 100,000 iterations</li>
+      <li><strong>Location:</strong> <code>.credentials/store.enc</code></li>
+      <li><strong>Protected by:</strong> a master password you set during setup</li>
+    </ul>
+    <div class="info">
+      <span class="badge">ℹ️</span>
+      <span>Your passwords and tokens are <strong>never stored in plain text</strong>. Even if someone copies the file, they can't read it without your master password.</span>
+    </div>
+  </div>
+
+  <div class="step" data-step="">
+    <h3>Managing Credentials</h3>
+    <pre><code><span class="cmt"># Open the credential manager</span>
+<span class="cmd">bash</span> sync.sh <span class="val">--creds</span></code></pre>
+    <p>From here you can:</p>
+    <ul>
+      <li>View stored services (Google Drive, SSH, etc.)</li>
+      <li>Add new credentials</li>
+      <li>Remove old credentials</li>
+      <li>Change the master password</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════════ DASHBOARD ═══════════════════ -->
+<section id="dashboard">
+  <h2><span class="icon">🌐</span> Using the Dashboard</h2>
+
+  <div class="step" data-step="">
+    <h3>Dashboard Panels</h3>
+    <table>
+      <tr><th>Panel</th><th>What it shows</th></tr>
+      <tr>
+        <td><strong>Sync Overview</strong></td>
+        <td>Status of all destinations (green = connected, grey = offline), file counts, last sync time</td>
+      </tr>
+      <tr>
+        <td><strong>File Tree</strong></td>
+        <td>All tracked files with sync status badges (synced / pending / error)</td>
+      </tr>
+      <tr>
+        <td><strong>Conflicts</strong></td>
+        <td>Files that changed in both source and destination — view diffs and resolve</td>
+      </tr>
+      <tr>
+        <td><strong>Git</strong></td>
+        <td>Branch, commit history, diff viewer, commit/push/pull buttons</td>
+      </tr>
+      <tr>
+        <td><strong>Sync History</strong></td>
+        <td>Log of past syncs with timestamps and file counts</td>
+      </tr>
+      <tr>
+        <td><strong>Destinations</strong></td>
+        <td>List of all configured destinations with connection status and test button</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="step" data-step="">
+    <h3>Status Indicators</h3>
+    <table>
+      <tr><th>Indicator</th><th>Meaning</th></tr>
+      <tr><td><span style="color:var(--green);">●</span> Green dot</td><td>Connected and working</td></tr>
+      <tr><td><span style="color:var(--orange);">●</span> Orange dot</td><td>Configured but not connected</td></tr>
+      <tr><td><span style="color:var(--text-dim);">●</span> Grey dot</td><td>Not configured</td></tr>
+      <tr><td><span style="color:var(--red);">●</span> Red dot</td><td>Error — check logs</td></tr>
+      <tr><td><span style="color:var(--green);">● CONNECTED</span></td><td>WebSocket to server is live</td></tr>
+    </table>
+  </div>
+
+  <div class="step" data-step="">
+    <h3>Keyboard Shortcuts &amp; Features</h3>
+    <ul>
+      <li><strong>Sync Now</strong> button — trigger a manual sync</li>
+      <li><strong>Auto-Sync</strong> toggle — enable/disable automatic sync on file changes</li>
+      <li><strong>Settings gear</strong> ⚙️ — change theme, language (EN/FR/AR)</li>
+      <li><strong>9 themes</strong> available — including dark and light modes</li>
+      <li><strong>3 languages</strong> — English, French, Arabic (with RTL support)</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════════ CLI CHEATSHEET ═══════════════════ -->
+<section id="cli">
+  <h2><span class="icon">⌨️</span> CLI Quick Reference</h2>
+
+  <div class="step" data-step="">
+    <pre><code><span class="cmt"># Launch the menu</span>
+<span class="cmd">bash</span> sync.sh
+
+<span class="cmt"># Direct commands (skip the menu)</span>
+<span class="cmd">bash</span> sync.sh <span class="val">--wizard</span>      <span class="cmt"># setup wizard</span>
+<span class="cmd">bash</span> sync.sh <span class="val">--web</span>         <span class="cmt"># start web dashboard</span>
+<span class="cmd">bash</span> sync.sh <span class="val">--tui</span>         <span class="cmt"># terminal UI (curses)</span>
+<span class="cmd">bash</span> sync.sh <span class="val">--sync</span>        <span class="cmt"># sync now (one-shot)</span>
+<span class="cmd">bash</span> sync.sh <span class="val">--status</span>      <span class="cmt"># show current status</span>
+<span class="cmd">bash</span> sync.sh <span class="val">--config</span>      <span class="cmt"># view configuration</span>
+<span class="cmd">bash</span> sync.sh <span class="val">--creds</span>       <span class="cmt"># manage credentials</span>
+<span class="cmd">bash</span> sync.sh <span class="val">--doctor</span>      <span class="cmt"># run diagnostics</span>
+<span class="cmd">bash</span> sync.sh <span class="val">--tests</span>       <span class="cmt"># run all 114 tests</span>
+<span class="cmd">bash</span> sync.sh <span class="val">--log</span>         <span class="cmt"># view logs</span>
+<span class="cmd">bash</span> sync.sh <span class="val">--clean</span>       <span class="cmt"># clean temp files</span>
+<span class="cmd">bash</span> sync.sh <span class="val">--version</span>     <span class="cmt"># show version</span></code></pre>
+  </div>
+</section>
+
+<!-- ═══════════════════ FAQ ═══════════════════ -->
+<section id="faq">
+  <h2><span class="icon">❓</span> FAQ</h2>
+
+  <details>
+    <summary>Can I use multiple destinations at once?</summary>
+    <div class="inner">
+      <p>Yes! Add multiple entries under <code>destinations:</code> in config.yaml. For example, sync to Google Drive AND a local backup folder simultaneously.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Is my data secure?</summary>
+    <div class="inner">
+      <p>Yes. Credentials are AES-256 encrypted. The dashboard runs on <strong>localhost only</strong> by default — no one on your network can access it unless you enable <code>bind_network: true</code>.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>What happens if there's a conflict?</summary>
+    <div class="inner">
+      <p>SyncFiles detects when a file has been modified in both the source and a destination. It shows the conflict in the dashboard with a <strong>side-by-side diff viewer</strong>. You choose which version to keep. A backup of the other version is saved in <code>.backups/</code>.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Does it work without internet?</summary>
+    <div class="inner">
+      <p>Yes — for local and Git (local) destinations. Google Drive and SSH obviously require a network connection, but the dashboard and local sync work fully offline.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>How do I update SyncFiles?</summary>
+    <div class="inner">
+      <pre><code><span class="cmd">bash</span> sync.sh <span class="val">--update</span></code></pre>
+      <p>Or pull the latest from Git if you cloned the repo.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>How do I reset everything?</summary>
+    <div class="inner">
+      <pre><code><span class="cmd">bash</span> sync.sh <span class="val">--clean</span></code></pre>
+      <p>This removes temp files, logs, and state. Your config and credentials are preserved. To fully reset, delete <code>.credentials/</code> and re-run the wizard.</p>
+    </div>
+  </details>
+</section>
+
+</div>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer>
+  <p>SyncFiles v1.6 — powered by <a href="https://workshop-diy.org" target="_blank">Workshop-DIY</a></p>
+  <p style="margin-top:4px;">sync · protect · accelerate</p>
+</footer>
+
+</body>
+</html>

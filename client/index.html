@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-theme="mosque-gold">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SyncFiles — Workshop DIY</title>
+  <meta name="description" content="Smart file sync with conflict detection, Google Drive & Git integration." />
+  <meta name="author" content="Workshop-DIY — abourdim" />
+  <meta property="og:title" content="SyncFiles — Workshop DIY" />
+  <meta property="og:description" content="Smart file sync — rsync-like delta, Google Drive, Git, conflict resolution." />
+  <meta property="og:type" content="website" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#08091a" />
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Righteous&family=Tajawal:wght@400;500;700&family=Bangers&family=Orbitron:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="sync.css" />
+</head>
+<body>
+  <!-- SPLASH -->
+  <div class="splash" id="splash" onclick="dismissSplash()">
+    <div class="splash-inner">
+      <div class="splash-logo" id="splashLogo"></div>
+      <div class="splash-title">SyncFiles</div>
+      <div class="splash-sub" data-i18n="subtitle">🔄 sync · 🔒 protect · ⚡ accelerate</div>
+      <div class="splash-hint" data-i18n="splashHint">tap to skip</div>
+    </div>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="login-overlay" id="loginOverlay" style="display:none">
+    <div class="login-card">
+      <div class="login-icon">🔐</div>
+      <h2 data-i18n="loginTitle">Dashboard Login</h2>
+      <input type="password" id="loginPassword" class="login-input" data-i18n-placeholder="loginPlaceholder" placeholder="Master password" />
+      <button id="loginSubmit" class="button primary" style="width:100%;margin-top:0.8rem"><span data-i18n="loginSubmit">Unlock</span></button>
+      <div class="login-error" id="loginError" style="display:none" data-i18n="loginError">Invalid password</div>
+    </div>
+  </div>
+
+  <div class="app">
+    <div class="deco-band top-band" aria-hidden="true"></div>
+    <div class="rows-container">
+
+      <!-- HEADER -->
+      <div class="header">
+        <div class="bismillah" aria-hidden="true">
+          <span class="bism-ornament">&#x2726;</span>
+          بِسْمِ ٱللَّٰهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
+          <span class="bism-ornament">&#x2726;</span>
+        </div>
+        <div class="title-block">
+          <div class="logo-wrap" id="logoWrap"></div>
+          <div>
+            <h1 data-i18n="title">SyncFiles</h1>
+            <div class="subtitle" data-i18n="subtitle">🔄 sync · 🔒 protect · ⚡ accelerate</div>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="header-buttons">
+            <button id="helpBtn" class="btn-icon-only" aria-label="Help">❓</button>
+            <button id="settingsBtn" class="btn-icon-only" aria-label="Settings">⚙️</button>
+            <button id="logBtn" class="btn-icon-only" aria-label="Activity Log">📜</button>
+          </div>
+          <div class="status-pill" id="statusPill">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText" data-i18n="disconnected">Disconnected</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN: SYNC OVERVIEW -->
+      <div class="card" id="mainCard">
+        <div class="card-header">
+          <div>
+            <div class="card-title"><span class="icon">🔄</span> <span data-i18n="syncOverview">Sync Overview</span></div>
+            <div class="card-subtitle"><span data-i18n="syncDesc">Monitor and control file synchronization</span> <span class="version-tag">v1.6</span></div>
+          </div>
+        </div>
+        <div class="sync-connections" id="syncConnections">
+          <div class="conn-pill" id="connGdrive"><span class="conn-dot"></span><span>Google Drive</span></div>
+          <div class="conn-pill" id="connGit"><span class="conn-dot"></span><span>Git</span></div>
+          <div class="conn-pill" id="connSSH"><span class="conn-dot"></span><span>SSH</span></div>
+        </div>
+        <div class="sync-stats">
+          <div class="stat-box"><div class="stat-val" id="statFiles">0</div><div class="stat-lbl" data-i18n="filesTracked">Files</div></div>
+          <div class="stat-box"><div class="stat-val" id="statPending">0</div><div class="stat-lbl" data-i18n="filesPending">Pending</div></div>
+          <div class="stat-box stat-warn"><div class="stat-val" id="statConflicts">0</div><div class="stat-lbl" data-i18n="filesConflict">Conflicts</div></div>
+          <div class="stat-box"><div class="stat-val" id="statLastSync">—</div><div class="stat-lbl" data-i18n="lastSync">Last Sync</div></div>
+        </div>
+        <div class="sync-controls">
+          <button id="btnSyncNow" class="button primary sync-btn"><span class="btn-icon">🔄</span> <span data-i18n="btnSync">Sync Now</span></button>
+          <div class="auto-sync-ctrl">
+            <label class="toggle-ctrl"><input type="checkbox" id="autoSyncToggle" class="checkbox-ctrl" /><span data-i18n="autoSync">Auto-Sync</span></label>
+            <span class="auto-status" id="autoSyncStatus"></span>
+          </div>
+        </div>
+        <div class="sync-progress" id="syncProgress" style="display:none">
+          <div class="prog-bar"><div class="prog-fill" id="progressFill"></div></div>
+          <div class="prog-text" id="progressText"></div>
+        </div>
+      </div>
+
+      <!-- FILE TREE -->
+      <details class="collapsible">
+        <summary><span class="icon">📂</span> <span data-i18n="fileTree">File Tree</span></summary>
+        <div class="card">
+          <div class="ftree-head">
+            <input type="text" id="fileSearch" class="ftree-search" placeholder="Search..." />
+            <div class="ftree-filters">
+              <button class="ftree-f active" data-ff="all" data-i18n="filterAll">All</button>
+              <button class="ftree-f" data-ff="pending">⏳</button>
+              <button class="ftree-f" data-ff="conflict">⚠️</button>
+              <button class="ftree-f" data-ff="synced">✓</button>
+            </div>
+          </div>
+          <div class="ftree" id="fileTree"><div class="ftree-empty" data-i18n="noFiles">No files tracked yet</div></div>
+        </div>
+      </details>
+
+      <!-- CONFLICTS -->
+      <details class="collapsible">
+        <summary><span class="icon">⚠️</span> <span data-i18n="conflicts">Conflicts</span> <span class="cbadge" id="conflictBadge" style="display:none">0</span></summary>
+        <div class="card">
+          <div id="conflictList"><div class="ftree-empty" data-i18n="noConflicts">No conflicts</div></div>
+        </div>
+      </details>
+
+      <!-- GIT -->
+      <details class="collapsible">
+        <summary><span class="icon">📝</span> <span data-i18n="gitSection">Git</span></summary>
+        <div class="card">
+          <div class="git-row">
+            <div class="git-info"><span class="git-branch" id="gitBranch">—</span> <span class="git-dirty" id="gitDirty"></span></div>
+            <div class="git-btns">
+              <button id="btnGitCommit" class="btn-sm"><span class="btn-icon">📝</span> <span data-i18n="gitCommit">Commit</span></button>
+              <button id="btnGitPush" class="btn-sm"><span class="btn-icon">📤</span> <span data-i18n="gitPush">Push</span></button>
+              <button id="btnGitPull" class="btn-sm"><span class="btn-icon">📥</span> <span data-i18n="gitPull">Pull</span></button>
+              <button id="btnGitLog" class="btn-sm"><span class="btn-icon">📋</span> <span data-i18n="gitLog">Log</span></button>
+            </div>
+          </div>
+          <div class="sync-hist" id="gitLogList" style="display:none"></div>
+        </div>
+      </details>
+
+      <!-- SYNC HISTORY -->
+      <details class="collapsible">
+        <summary><span class="icon">📊</span> <span data-i18n="syncHistory">Sync History</span></summary>
+        <div class="card"><div class="sync-hist" id="syncHistory"><div class="ftree-empty" data-i18n="noHistory">No history yet</div></div></div>
+      </details>
+
+      <!-- DESTINATIONS -->
+      <details class="collapsible">
+        <summary><span class="icon">🌐</span> <span data-i18n="destinations">Destinations</span></summary>
+        <div class="card"><div id="destList"><div class="ftree-empty" data-i18n="noDest">No destinations configured</div></div></div>
+      </details>
+
+    </div>
+
+    <footer class="app-footer">
+      <span class="footer-text">powered by <a href="https://workshop-diy.org" target="_blank" rel="noopener">workshop-diy.org</a></span>
+      <span class="hijri-date" id="hijriDate"></span>
+    </footer>
+    <div class="deco-band bottom-band" aria-hidden="true"></div>
+  </div>
+
+  <canvas id="matrixCanvas" class="matrix-canvas"></canvas>
+  <div id="debugPanel" class="debug-panel"><span id="debugFps">0 FPS</span> <span id="debugMem">0 MB</span></div>
+
+  <!-- HELP PANEL -->
+  <div class="sidebar-overlay" id="helpOverlay"></div>
+  <aside class="sidebar sidebar-left" id="helpPanel" aria-label="Help" role="dialog" aria-modal="true">
+    <div class="sidebar-header"><span class="sidebar-title" data-i18n="help">❓ Help</span><button id="helpCloseBtn" class="btn-icon-only" aria-label="Close">✕</button></div>
+    <div class="help-tabs">
+      <button class="help-tab active" data-tab="faq" data-i18n="faq">FAQ</button>
+      <button class="help-tab" data-tab="howto" data-i18n="howto">How-To</button>
+      <button class="help-tab" data-tab="wiki" data-i18n="wiki">Wiki</button>
+    </div>
+    <div class="sidebar-body">
+      <div class="help-content active" id="helpFaq">
+        <details class="help-item"><summary data-i18n="faq_q1">What is SyncFiles?</summary><p data-i18n="faq_a1">A smart file sync tool for developers. Delta sync, conflict detection, Google Drive & Git integration.</p></details>
+        <details class="help-item"><summary data-i18n="faq_q2">How does conflict detection work?</summary><p data-i18n="faq_a2">If a file changes on both sides, SyncFiles creates a backup and alerts you. You choose which version to keep.</p></details>
+        <details class="help-item"><summary data-i18n="faq_q3">What is delta sync?</summary><p data-i18n="faq_a3">Like rsync — files split into chunks, only changed chunks transferred. Great for large files.</p></details>
+        <details class="help-item"><summary data-i18n="faq_q4">Is my data private?</summary><p data-i18n="faq_a4">Yes. Runs locally, credentials encrypted, dashboard localhost-only by default.</p></details>
+      </div>
+      <div class="help-content" id="helpHowto">
+        <div class="help-step"><span class="help-step-num">1</span><p data-i18n="howto_1">Run ./sync.sh --install to set up.</p></div>
+        <div class="help-step"><span class="help-step-num">2</span><p data-i18n="howto_2">Edit config.yaml — set source and destinations.</p></div>
+        <div class="help-step"><span class="help-step-num">3</span><p data-i18n="howto_3">Set up credentials: ./sync.sh --creds</p></div>
+        <div class="help-step"><span class="help-step-num">4</span><p data-i18n="howto_4">Launch: ./sync.sh --web</p></div>
+      </div>
+      <div class="help-content" id="helpWiki">
+        <div class="wiki-entry"><h3 data-i18n="wiki_delta_title">⚡ Delta Sync</h3><p data-i18n="wiki_delta">4MB chunks, SHA256 hashed, only changed chunks transferred.</p></div>
+        <div class="wiki-entry"><h3 data-i18n="wiki_conflict_title">⚠️ Conflicts</h3><p data-i18n="wiki_conflict">Both sides modified = conflict. Backup auto-created. Resolve in dashboard.</p></div>
+        <div class="wiki-entry"><h3 data-i18n="wiki_creds_title">🔒 Credentials</h3><p data-i18n="wiki_creds">Fernet AES-256 encryption, PBKDF2 key derivation, master password protected.</p></div>
+        <div class="wiki-entry"><h3 data-i18n="wiki_privacy_title">🔒 Privacy</h3><p data-i18n="wiki_privacy">Local-first. No tracking. Dashboard localhost-only. Your files, your control.</p></div>
+      </div>
+    </div>
+    <div class="sidebar-footer"><span>SyncFiles</span> <span class="badge"><strong>v1.6</strong></span></div>
+  </aside>
+
+  <!-- SETTINGS PANEL -->
+  <div class="sidebar-overlay" id="settingsOverlay"></div>
+  <aside class="sidebar" id="settingsPanel" aria-label="Settings" role="dialog" aria-modal="true">
+    <div class="sidebar-header"><span class="sidebar-title" data-i18n="settings">⚙️ Settings</span><button id="settingsCloseBtn" class="btn-icon-only" aria-label="Close">✕</button></div>
+    <div class="sidebar-body">
+      <div class="sidebar-group"><label class="sidebar-label" data-i18n="language">Language</label>
+        <select id="langSelect" class="sidebar-select"><option value="en" selected>🇬🇧 EN</option><option value="fr">🇫🇷 FR</option><option value="ar">🇩🇿 عربي</option></select></div>
+      <div class="sidebar-group"><label class="sidebar-label" data-i18n="theme">Theme</label>
+        <select id="themeSelect" class="sidebar-select">
+          <option value="mosque-gold" data-i18n-opt="t_mosque">Mosque</option><option value="zellige" data-i18n-opt="t_zellige">Zellige</option>
+          <option value="andalus" data-i18n-opt="t_andalus">Andalus</option><option value="riad" data-i18n-opt="t_riad">Riad</option>
+          <option value="medina" data-i18n-opt="t_medina">Medina</option><option value="space" data-i18n-opt="t_space">Space</option>
+          <option value="jungle" data-i18n-opt="t_jungle">Jungle</option><option value="robot" data-i18n-opt="t_robot">Robot</option>
+        </select></div>
+      <div class="sidebar-group"><label class="toggle-ctrl"><input type="checkbox" id="soundToggle" class="checkbox-ctrl" /><span data-i18n="soundEffects">🔊 Sound effects</span></label></div>
+      <div class="sidebar-group"><label class="sidebar-label" data-i18n="syncInterval">Sync interval</label>
+        <div style="display:flex;align-items:center;gap:0.5rem"><input type="range" id="syncIntervalSlider" min="1" max="60" value="5" style="flex:1" /><span id="syncIntervalVal">5s</span></div></div>
+      <div class="sidebar-group"><label class="toggle-ctrl"><input type="checkbox" id="gitAutoCommit" class="checkbox-ctrl" /><span data-i18n="autoCommit">Auto Git commit</span></label></div>
+      <div class="sidebar-group"><label class="toggle-ctrl"><input type="checkbox" id="gitAutoPush" class="checkbox-ctrl" /><span data-i18n="autoPush">Auto Git push</span></label></div>
+      <div class="sidebar-group"><button id="whisperBtn" class="btn-sm" style="width:100%"><span class="btn-icon">🎤</span> <span data-i18n="whisperMode">Whisper mode</span></button></div>
+      <div class="sidebar-group"><button id="breathingBtn" class="btn-sm" style="width:100%"><span class="btn-icon">🫁</span> <span data-i18n="breathingGuide">Breathing guide</span></button>
+        <div class="dhikr-display" id="dhikrDisplay" style="display:none"><span class="dhikr-label">سبحان الله</span><span class="dhikr-count" id="dhikrCounter">0</span><button id="dhikrBtn" class="btn-sm primary"><span data-i18n="dhikrTap">Tap</span></button></div></div>
+      <div class="sidebar-group"><button id="musicBtn" class="btn-sm" style="width:100%"><span class="btn-icon">🎵</span> <span data-i18n="musicMode">Music reactive</span></button></div>
+    </div>
+    <div class="sidebar-footer"><span>SyncFiles</span> <span class="badge"><strong>v1.6</strong></span></div>
+  </aside>
+
+  <!-- LOG PANEL -->
+  <aside class="sidebar" id="logPanel" aria-label="Activity Log">
+    <div class="resize-handle" id="logResizeHandle"></div>
+    <div class="sidebar-header"><span class="sidebar-title" data-i18n="activityLog">📜 Activity Log</span>
+      <div class="log-controls">
+        <button id="clearLogBtn" class="btn-sm"><span class="btn-icon">🧹</span><span data-i18n="clear">Clear</span></button>
+        <button id="copyLogBtn" class="btn-sm"><span class="btn-icon">📋</span><span data-i18n="copy">Copy</span></button>
+        <button id="exportLogBtn" class="btn-sm"><span class="btn-icon">💾</span><span data-i18n="export">Export</span></button>
+        <button id="logCloseBtn" class="btn-icon-only" aria-label="Close">✕</button>
+      </div>
+    </div>
+    <div class="log-filters" id="logFilters">
+      <button class="log-filter active" data-filter="all" data-i18n="filterAll">All</button>
+      <button class="log-filter" data-filter="info">Info</button>
+      <button class="log-filter" data-filter="success">✓</button>
+      <button class="log-filter" data-filter="error">✗</button>
+      <button class="log-filter" data-filter="tx">TX</button>
+      <button class="log-filter" data-filter="rx">RX</button>
+    </div>
+    <div class="sidebar-body log-body"><div class="log" id="logContainer" aria-live="polite"></div></div>
+    <div class="sidebar-footer"><span data-i18n="eventsMsg">Events &amp; messages</span> <span class="badge"><strong>v1.6</strong></span></div>
+  </aside>
+
+  <div id="toastIndicator" class="toast-indicator"><div class="toast-inner"><div class="spinner"></div><div id="toastMessage" class="toast-text">Working…</div></div></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
